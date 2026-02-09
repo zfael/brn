@@ -1,0 +1,29 @@
+{
+  "name": "brn",
+  "version": "1.0.0",
+  "description": "AI Developer Workflow Toolkit - Skills for Claude Code and Copilot CLI",
+  "type": "module",
+  "bin": {
+    "brn": "./cli/brn.ts"
+  },
+  "scripts": {
+    "setup": "npx tsx cli/brn.ts setup",
+    "github:repos": "npx tsx skills/github/scripts/list_repos.ts",
+    "github:repo": "npx tsx skills/github/scripts/get_repo_info.ts",
+    "github:pr:create": "npx tsx skills/github/scripts/create_pr.ts",
+    "github:pr:list": "npx tsx skills/github/scripts/list_prs.ts",
+    "jira:tickets": "npx tsx skills/jira/scripts/list_tickets.ts",
+    "jira:ticket": "npx tsx skills/jira/scripts/get_ticket.ts",
+    "jira:update": "npx tsx skills/jira/scripts/update_ticket.ts",
+    "jira:comment": "npx tsx skills/jira/scripts/add_comment.ts"
+  },
+  "dependencies": {
+    "yaml": "^2.3.4",
+    "zx": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}
