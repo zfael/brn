@@ -1,57 +1,49 @@
 ---
-name: git-worktree
+name: brn:git-worktree
 description: |
-  Manage git repositories using the worktree pattern for efficient multi-branch development.
-  Use when: (1) Cloning a repository for the first time, (2) Creating a new worktree for a feature branch,
-  (3) Listing existing worktrees, (4) Removing worktrees after work is complete.
-  The worktree pattern clones once and creates lightweight working directories for each branch,
-  avoiding the overhead of multiple full clones.
+  Manage git repositories using the worktree pattern.
+  This allows multiple branches to be checked out simultaneously in sibling directories.
 ---
 
 # Git Worktree Manager
 
-Manage repositories using git worktrees. This allows working on multiple branches simultaneously without switching or stashing.
+## Description
+The git-worktree skill manages repositories using a specific directory structure optimized for multi-tasking. Instead of a single `.git` folder with one working directory, it uses a "bare" clone (or similar) and creates a separate directory for each branch/feature.
 
-## Concept
+## Available Scripts
 
-```
-~/dev/personal/auto/
-├── my-project/              # Main clone (bare or with default branch)
-│   └── .git/
-└── my-project-worktrees/    # Worktrees directory
-    ├── feature-123/         # Worktree for feature branch
-    ├── feature-456/         # Another feature branch
-    └── hotfix-789/          # Hotfix branch
-```
+### `clone_repo`
+Clones a repository into the current workspace, setting it up for worktree usage. This creates a directory structure where the main repo is stored, and worktrees can be added alongside it.
 
-## Quick Reference
+*   **Usage**: `brn git-worktree clone_repo <repo_url> [name]`
+*   **Arguments**:
+    *   `repo_url`: The URL of the git repository to clone.
+    *   `name` (optional): The name of the directory to create. Defaults to the repo name from the URL.
+*   **Example**: `brn git-worktree clone_repo https://github.com/myorg/api.git`
 
-| Action | Script |
-|--------|--------|
-| Clone repo | `scripts/clone_repo.sh <repo_url> [name]` |
-| Create worktree | `scripts/create_worktree.sh <repo_name> <branch_name>` |
-| List worktrees | `scripts/list_worktrees.sh <repo_name>` |
-| Remove worktree | `scripts/remove_worktree.sh <repo_name> <branch_name>` |
+### `create_worktree`
+Creates a new worktree for a specific branch. If the branch doesn't exist, it can be created from a base branch.
 
-## Workflow Examples
+*   **Usage**: `brn git-worktree create_worktree <repo_name> <branch_name> [base_branch]`
+*   **Arguments**:
+    *   `repo_name`: The name of the repository (must be already cloned via `clone_repo`).
+    *   `branch_name`: The name of the new branch and worktree directory.
+    *   `base_branch` (optional): The branch to split from. Defaults to `main` or `master`.
+*   **Example**: `brn git-worktree create_worktree api feature/login`
 
-### Start working on a JIRA ticket
-```bash
-# Clone if not already done
-./scripts/clone_repo.sh https://github.com/org/my-app.git
+### `list_worktrees`
+Lists all active worktrees for a repository.
 
-# Create worktree for ticket
-./scripts/create_worktree.sh my-app PROJ-123-new-feature
+*   **Usage**: `brn git-worktree list_worktrees <repo_name>`
+*   **Arguments**:
+    *   `repo_name`: The name of the repository to list worktrees for.
+*   **Example**: `brn git-worktree list_worktrees api`
 
-# Work in the worktree directory
-cd ~/dev/personal/auto/my-app-worktrees/PROJ-123-new-feature
-```
+### `remove_worktree`
+Removes a worktree and its directory. This cleans up the working directory and the git worktree entry.
 
-### Clean up after PR merged
-```bash
-./scripts/remove_worktree.sh my-app PROJ-123-new-feature
-```
-
-## Integration
-
-Uses `workspace-manager` to determine the work directory. Repositories are cloned to `<workspace_path>/<repo_name>/` and worktrees are created in `<workspace_path>/<repo_name>-worktrees/`.
+*   **Usage**: `brn git-worktree remove_worktree <repo_name> <branch_name>`
+*   **Arguments**:
+    *   `repo_name`: The name of the repository.
+    *   `branch_name`: The name of the worktree/branch to remove.
+*   **Example**: `brn git-worktree remove_worktree api feature/login`

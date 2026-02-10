@@ -1,62 +1,50 @@
 ---
-name: jira
+name: brn:jira
 description: |
   Interact with JIRA API for ticket management and tracking.
-  Use when: (1) Listing tickets assigned to current user, (2) Getting ticket details,
-  (3) Updating ticket status/transitions, (4) Adding comments to tickets.
-  Uses jira_token and jira_url from the active workspace configuration.
+  Use when: (1) Listing assigned tickets, (2) Getting details, (3) Updating status.
 ---
 
 # JIRA Integration
 
-Interact with JIRA API using workspace-configured tokens.
+## Description
+The JIRA skill allows you to manage your tasks without leaving the terminal. It connects to your JIRA instance using the credentials configured in your workspace.
 
-## Quick Reference
+## Available Scripts
 
-| Action | Script |
-|--------|--------|
-| List my tickets | `npx tsx scripts/list_tickets.ts` |
-| Get ticket details | `npx tsx scripts/get_ticket.ts <ticket_key>` |
-| Update ticket status | `npx tsx scripts/update_ticket.ts <ticket_key> <transition>` |
-| Add comment | `npx tsx scripts/add_comment.ts <ticket_key> <comment>` |
+### `list_tickets`
+Lists JIRA tickets assigned to the current user. Can be filtered by status.
 
-## Prerequisites
+*   **Usage**: `brn jira list_tickets [status]`
+*   **Arguments**:
+    *   `status` (optional): Filter tickets by status (e.g., "In Progress", "To Do").
+*   **Example**: `brn jira list_tickets "In Progress"`
 
-Configure JIRA access in your workspace:
-```bash
-# Set JIRA Cloud URL
-./skills/workspace-manager/scripts/configure_workspace.sh work jira_url https://company.atlassian.net
+### `get_ticket`
+Retrieves detailed information about a specific JIRA ticket.
 
-# Set API token (create at https://id.atlassian.com/manage-profile/security/api-tokens)
-./skills/workspace-manager/scripts/configure_workspace.sh work jira_token your_api_token
+*   **Usage**: `brn jira get_ticket <ticket_key>`
+*   **Arguments**:
+    *   `ticket_key`: The JIRA issue key (e.g., `PROJ-123`).
+*   **Example**: `brn jira get_ticket PROJ-123`
 
-# Set your JIRA email (required for auth)
-./skills/workspace-manager/scripts/configure_workspace.sh work jira_email your@email.com
-```
+### `update_ticket`
+Updates the status (transition) of a JIRA ticket.
 
-## Workflow Examples
+*   **Usage**: `brn jira update_ticket <ticket_key> <transition>`
+*   **Arguments**:
+    *   `ticket_key`: The JIRA issue key.
+    *   `transition`: The name of the transition/status to move to (e.g., "In Progress", "Done").
+*   **Example**: `brn jira update_ticket PROJ-123 "In Progress"`
 
-### Start working on a ticket
-```bash
-# See what's assigned to you
-npx tsx scripts/list_tickets.ts
+### `add_comment`
+Adds a comment to a JIRA ticket.
 
-# Get details for a specific ticket
-npx tsx scripts/get_ticket.ts PROJ-123
-
-# Move to "In Progress"
-npx tsx scripts/update_ticket.ts PROJ-123 "In Progress"
-```
-
-### After completing work
-```bash
-# Add a comment
-npx tsx scripts/add_comment.ts PROJ-123 "PR created: https://github.com/..."
-
-# Move to "Code Review"
-npx tsx scripts/update_ticket.ts PROJ-123 "Code Review"
-```
+*   **Usage**: `brn jira add_comment <ticket_key> <comment>`
+*   **Arguments**:
+    *   `ticket_key`: The JIRA issue key.
+    *   `comment`: The text content of the comment.
+*   **Example**: `brn jira add_comment PROJ-123 "Released in version 1.2.0"`
 
 ## API Reference
-
-See [references/api_patterns.md](references/api_patterns.md) for JIRA API patterns.
+See [references/api_patterns.md](references/api_patterns.md) for patterns.

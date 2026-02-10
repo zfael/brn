@@ -2,7 +2,7 @@
  * Shared utilities for brn scripts
  */
 import { $ } from "zx";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, writeFileSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
 import YAML from "yaml";
@@ -19,6 +19,7 @@ export interface AutomationConfig {
 export interface WorkspaceConfig {
     path: string;
     github_token?: string | null;
+    github_org?: string | null;
     jira_token?: string | null;
     jira_url?: string | null;
     jira_email?: string | null;
@@ -45,6 +46,34 @@ export function getBrnConfig(): BrnConfig {
 
     const content = readFileSync(configPath, "utf-8");
     return YAML.parse(content) as BrnConfig;
+}
+
+/**
+ * Save the brn config to ~/.brn/config.yaml
+ */
+export function saveBrnConfig(config: BrnConfig): void {
+    const configPath = join(homedir(), ".brn", "config.yaml");
+    writeFileSync(configPath, YAML.stringify(config));
+}
+
+/**
+ * Update the active workspace configuration
+ */
+export function updateWorkspace(updates: Partial<WorkspaceConfig>): void {
+    const config = getBrnConfig();
+    const activeWorkspaceName = config.active_workspace;
+    
+    if (!config.workspaces[activeWorkspaceName]) {
+        console.error(`Error: Active workspace '${activeWorkspaceName}' not found`);
+        process.exit(1);
+    }
+
+    config.workspaces[activeWorkspaceName] = {
+        ...config.workspaces[activeWorkspaceName],
+        ...updates,
+    };
+
+    saveBrnConfig(config);
 }
 
 /**
@@ -147,6 +176,8 @@ export async function githubRequest<T>(
     options: RequestInit = {}
 ): Promise<T> {
     const token = getGitHubToken();
+
+    console.log(`[GitHub API] Requesting: ${endpoint}`);
 
     const response = await fetch(`https://api.github.com${endpoint}`, {
         ...options,

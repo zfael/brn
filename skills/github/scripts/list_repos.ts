@@ -3,7 +3,7 @@
  * List repositories for an organization or user
  * Usage: npx tsx list_repos.ts [org_or_user]
  */
-import { githubRequest } from "../../../lib/utils.js";
+import { githubRequest, getActiveWorkspace } from "../../../lib/utils.js";
 
 interface Repo {
     full_name: string;
@@ -11,12 +11,21 @@ interface Repo {
     description: string | null;
 }
 
-const orgOrUser = process.argv[2];
+let orgOrUser = process.argv[2];
+
+if (!orgOrUser) {
+    const ws = getActiveWorkspace();
+    if (ws.github_org) {
+        orgOrUser = ws.github_org;
+    }
+}
 
 let endpoint = "/user/repos?per_page=100";
 if (orgOrUser) {
     endpoint = `/orgs/${orgOrUser}/repos?per_page=100`;
 }
+
+console.log(`Fetching repositories from: ${endpoint}`);
 
 try {
     let repos = await githubRequest<Repo[]>(endpoint);
@@ -40,6 +49,6 @@ try {
         console.log();
     }
 } catch (error) {
-    // Error already logged by githubRequest
+    console.error("Failed to list repositories:", error);
     process.exit(1);
 }

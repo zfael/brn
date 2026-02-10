@@ -25,9 +25,14 @@ if (statusFilter) {
     jql = `assignee = currentUser() AND status = "${statusFilter}" ORDER BY updated DESC`;
 }
 
-const data = await jiraRequest<SearchResult>(
-    `/rest/api/3/search?jql=${encodeURIComponent(jql)}&maxResults=20`
-);
+const data = await jiraRequest<SearchResult>("/rest/api/3/search/jql", {
+    method: "POST",
+    body: JSON.stringify({
+        jql,
+        maxResults: 20,
+        fields: ["summary", "status", "priority"],
+    }),
+});
 
 const issues = data.issues;
 

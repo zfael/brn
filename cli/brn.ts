@@ -7,10 +7,15 @@ import { $ } from "zx";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 import { homedir } from "os";
 import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 import * as readline from "readline";
 import YAML from "yaml";
 
 $.verbose = false;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const PROJECT_ROOT = join(__dirname, "..");
 
 const BRN_DIR = join(homedir(), ".brn");
 const CONFIG_FILE = join(BRN_DIR, "config.yaml");
@@ -28,6 +33,38 @@ function prompt(question: string): Promise<string> {
             resolve(answer.trim());
         });
     });
+}
+
+async function runSkill(skill: string, script: string, args: string[]) {
+    const scriptsDir = join(PROJECT_ROOT, "skills", skill, "scripts");
+    
+    // Try .ts then .sh
+    const tsPath = join(scriptsDir, `${script}.ts`);
+    const shPath = join(scriptsDir, `${script}.sh`);
+
+    // Enable verbose to show output of the child script
+    const previousVerbose = $.verbose;
+    $.verbose = true;
+    
+    try {
+        if (existsSync(tsPath)) {
+            await $`npx tsx ${tsPath} ${args}`;
+        } else if (existsSync(shPath)) {
+            await $`bash ${shPath} ${args}`;
+        } else {
+            // Try without extension
+            const exactPath = join(scriptsDir, script);
+            if (existsSync(exactPath)) {
+                if (script.endsWith(".sh")) await $`bash ${exactPath} ${args}`;
+                else await $`npx tsx ${exactPath} ${args}`;
+            } else {
+                console.error(`Skill script not found: ${skill}/${script}`);
+                process.exit(1);
+            }
+        }
+    } finally {
+        $.verbose = previousVerbose;
+    }
 }
 
 async function setup() {
@@ -67,6 +104,7 @@ async function setup() {
     console.log("");
     console.log("📦 GitHub Configuration (optional, press Enter to skip)");
     const githubToken = await prompt("GitHub token: ");
+    const githubOrg = await prompt("Default GitHub Organization/User: ");
 
     // JIRA config (optional)
     console.log("");
@@ -113,6 +151,7 @@ async function setup() {
     };
 
     if (githubToken) workspace.github_token = githubToken;
+    if (githubOrg) workspace.github_org = githubOrg;
     if (jiraUrl) {
         workspace.jira_url = jiraUrl;
         workspace.jira_email = jiraEmail;
@@ -191,16 +230,24 @@ BRN - AI Developer Workflow Toolkit
 
 Usage:
   brn <command> [options]
+  brn <skill> <script> [args]
 
 Commands:
+  start <ticket>        Shortcut for workflow start <ticket>
   setup                 Interactive setup wizard
   workspace list        List all workspaces
   workspace switch <n>  Switch to workspace <n>
   help                  Show this help
 
+Skills:
+  github <script>       Run a GitHub skill script (e.g., list_repos)
+  jira <script>         Run a JIRA skill script (e.g., list_tickets)
+  git-worktree <script> Run a Git Worktree skill script (e.g., clone_repo)
+
 Examples:
-  brn setup
-  brn workspace list
+  brn start PROJ-123
+  brn github list_repos
+  brn jira list_tickets
   brn workspace switch work
 `);
 }
@@ -210,6 +257,9 @@ const args = process.argv.slice(2);
 const command = args[0];
 
 switch (command) {
+    case "start":
+        await runSkill("workflow", "start", args.slice(1));
+        break;
     case "setup":
         await setup();
         break;
@@ -229,7 +279,12 @@ switch (command) {
         showHelp();
         break;
     default:
-        console.log(`Unknown command: ${command}`);
-        showHelp();
-        process.exit(1);
+        // Generic skill runner: brn <skill> <script> [...args]
+        if (command && args[1]) {
+            await runSkill(command, args[1], args.slice(2));
+        } else {
+            console.log(`Unknown command: ${command}`);
+            showHelp();
+            process.exit(1);
+        }
 }

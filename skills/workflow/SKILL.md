@@ -1,15 +1,28 @@
 ---
-name: workflow
+name: brn:workflow
 description: |
   Orchestrate the complete development workflow from ticket to PR.
-  Use when: (1) Starting work on a JIRA ticket, (2) Following the planning-coding-review cycle,
-  (3) Creating a PR after completing work, (4) Running code review before finalizing.
-  This skill ties together workspace-manager, git-worktree, github, and jira skills into a cohesive workflow.
+  Use when: (1) Starting work on a JIRA ticket, (2) Following the planning-coding-review cycle.
 ---
 
 # Development Workflow Orchestrator
 
-Guides the complete development cycle: Ticket → Planning → Coding → Review → PR.
+## Description
+The Workflow skill orchestrates high-level development tasks that involve multiple other skills (JIRA, Git, GitHub). It is designed to reduce the cognitive load of starting and managing tasks.
+
+## Available Scripts
+
+### `start`
+Initiates work on a specific ticket. This script:
+1.  Fetches ticket details from JIRA.
+2.  Determines the correct repository (based on convention or config).
+3.  Creates a new git worktree for the feature branch.
+4.  Updates the JIRA ticket status to "In Progress".
+
+*   **Usage**: `brn start <ticket_id>` (Shortcut) or `brn workflow start <ticket_id>`
+*   **Arguments**:
+    *   `ticket_id`: The JIRA issue key (e.g., `PROJ-123`).
+*   **Example**: `brn start PROJ-123`
 
 ## Workflow Overview
 
@@ -18,7 +31,7 @@ Guides the complete development cycle: Ticket → Planning → Coding → Review
 │                    DEVELOPMENT WORKFLOW                      │
 ├─────────────────────────────────────────────────────────────┤
 │  1. INITIATE                                                │
-│     └── Select ticket → Clone repo → Create worktree        │
+│     └── brn start <ticket>                                  │
 ├─────────────────────────────────────────────────────────────┤
 │  2. PLAN                                                    │
 │     └── Understand requirements → Create implementation plan │
@@ -34,124 +47,39 @@ Guides the complete development cycle: Ticket → Planning → Coding → Review
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Phase 1: Initiate
+## Detailed Phases
 
-Start work on a JIRA ticket:
-
+### Phase 1: Initiate
+Start work on a JIRA ticket using the deterministic command:
 ```bash
-# 1. List your tickets
-npx tsx skills/jira/scripts/list_tickets.ts
-
-# 2. Get ticket details
-npx tsx skills/jira/scripts/get_ticket.ts PROJ-123
-
-# 3. Clone repo if needed
-./skills/git-worktree/scripts/clone_repo.sh https://github.com/org/repo.git
-
-# 4. Create worktree for the ticket
-./skills/git-worktree/scripts/create_worktree.sh repo PROJ-123-feature-name
-
-# 5. Update ticket status
-npx tsx skills/jira/scripts/update_ticket.ts PROJ-123 "In Progress"
-
-# 6. Navigate to worktree
-cd ~/dev/<workspace>/repo-worktrees/PROJ-123-feature-name
+brn start PROJ-123
 ```
 
-## Phase 2: Plan
+### Phase 2: Plan
+Create an implementation plan before coding. Read the ticket thoroughly and create a `PLAN.md` in the worktree.
 
-Create an implementation plan before coding:
+### Phase 3: Code
+Implement the solution following the plan. Commit frequently with the ticket ID in the message.
 
-1. **Read the ticket thoroughly** - Understand requirements, acceptance criteria
-2. **Research the codebase** - Find related code, understand patterns
-3. **Create plan document** - Write to `PLAN.md` in the worktree:
+### Phase 4: Review
+Self-review before creating PR. Use linter, tests, and type checking.
 
-```markdown
-# PROJ-123: Feature Name
-
-## Requirements
-- [ ] Requirement 1
-- [ ] Requirement 2
-
-## Approach
-1. Step one
-2. Step two
-
-## Files to Modify
-- `src/module/file.ts` - Add X
-- `src/tests/file.test.ts` - Add tests
-
-## Open Questions
-- Q1?
-```
-
-4. **Get plan approval** - Review with stakeholder if needed
-
-## Phase 3: Code
-
-Implement the solution:
-
-1. **Follow the plan** - Work through requirements systematically
-2. **Commit frequently** - Small, atomic commits with clear messages
-3. **Write tests** - Unit tests for new code
-4. **Run tests** - Ensure nothing is broken
-
+### Phase 5: Ship
 ```bash
-# Commit format
-git commit -m "feat(module): description [PROJ-123]"
-```
+# Push branch
+git push origin <branch-name>
 
-## Phase 4: Review
+# Create PR
+brn github create_pr <owner/repo> <head> <base> <title>
 
-Self-review before creating PR:
+# Add PR link to ticket
+brn jira add_comment <ticket_key> "PR: <url>"
 
-### Code Review Checklist
-
-- [ ] **Functionality** - Does it work as expected?
-- [ ] **Tests** - Are there adequate tests?
-- [ ] **Edge cases** - Are edge cases handled?
-- [ ] **Error handling** - Are errors handled gracefully?
-- [ ] **Performance** - Any obvious performance issues?
-- [ ] **Security** - Any security concerns?
-- [ ] **Documentation** - Are complex parts documented?
-- [ ] **Style** - Does it follow project conventions?
-
-### Run Reviews
-
-```bash
-# Run linter
-npm run lint
-
-# Run tests
-npm test
-
-# Run type check
-npm run typecheck
-```
-
-## Phase 5: Ship
-
-Create PR and close the loop:
-
-```bash
-# 1. Push branch
-git push origin PROJ-123-feature-name
-
-# 2. Create PR
-npx tsx skills/github/scripts/create_pr.ts org/repo PROJ-123-feature-name main "feat: Add feature [PROJ-123]"
-
-# 3. Add PR link to ticket
-npx tsx skills/jira/scripts/add_comment.ts PROJ-123 "PR created: https://github.com/org/repo/pull/XXX"
-
-# 4. Update ticket status
-npx tsx skills/jira/scripts/update_ticket.ts PROJ-123 "Code Review"
-
-# 5. After merge, clean up
-./skills/git-worktree/scripts/remove_worktree.sh repo PROJ-123-feature-name
+# Update ticket status
+brn jira update_ticket <ticket_key> "Code Review"
 ```
 
 ## Detailed Guides
-
-- [Planning Workflow](references/planning_workflow.md) - Detailed planning process
-- [Coding Workflow](references/coding_workflow.md) - Coding best practices
-- [Review Workflow](references/review_workflow.md) - Review checklist and process
+- [Planning Workflow](references/planning_workflow.md)
+- [Coding Workflow](references/coding_workflow.md)
+- [Review Workflow](references/review_workflow.md)
