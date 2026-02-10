@@ -62,9 +62,13 @@ Create an implementation plan before coding. Read the ticket thoroughly and crea
 Implement the solution following the plan. Commit frequently with the ticket ID in the message.
 
 ### Phase 4: Review
-Self-review before creating PR. Use linter, tests, and type checking. Should not commit the PLAN.md file.
+Self-review before creating PR. Use linter, tests, and type checking.
 
 ### Phase 5: Ship
+
+Should always check ~/.brn/config.yaml to confirm automation is enabled.
+Should not commit the PLAN.md file.
+
 ```bash
 # Push branch
 git push origin <branch-name>
@@ -78,6 +82,10 @@ brn jira add_comment <ticket_key> "PR: <url>"
 # Update ticket status
 brn jira update_ticket <ticket_key> "Code Review"
 ```
+
+### Phase 6: Clean-up
+
+It should clean-up git worktrees if code change was pushed upstream.
 
 ## Detailed Guides
 - [Planning Workflow](references/planning_workflow.md)
