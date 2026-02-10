@@ -62,7 +62,7 @@ Create an implementation plan before coding. Read the ticket thoroughly and crea
 Implement the solution following the plan. Commit frequently with the ticket ID in the message.
 
 ### Phase 4: Review
-Self-review before creating PR. Use linter, tests, and type checking.
+Self-review before creating PR. Use linter, tests, and type checking. Should not commit the PLAN.md file.
 
 ### Phase 5: Ship
 ```bash

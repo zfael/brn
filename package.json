@@ -18,9 +18,9 @@
     "jira:comment": "npx tsx skills/jira/scripts/add_comment.ts"
   },
   "dependencies": {
+    "tsx": "^4.7.0",
     "yaml": "^2.3.4",
-    "zx": "^8.1.0",
-    "tsx": "^4.7.0"
+    "zx": "^8.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
