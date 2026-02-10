@@ -68,6 +68,7 @@ Self-review before creating PR. Use linter, tests, and type checking.
 
 Should always check ~/.brn/config.yaml to confirm automation is enabled.
 Should not commit the PLAN.md file.
+Should keep commit message clean. Dont append co-authored-by
 
 ```bash
 # Push branch
